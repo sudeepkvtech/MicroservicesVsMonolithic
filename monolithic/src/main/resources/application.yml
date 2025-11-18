@@ -1,0 +1,165 @@
+# Application Configuration for Monolithic Appointment Scheduling App
+# Uses YAML format for better readability
+
+# Spring application configuration
+spring:
+  # Application name - used in monitoring and logging
+  application:
+    name: appointment-monolithic
+
+  # Database configuration (PostgreSQL)
+  datasource:
+    # JDBC URL - connects to PostgreSQL database
+    # Format: jdbc:postgresql://host:port/database
+    url: jdbc:postgresql://localhost:5432/appointment_db
+    # Database username
+    username: postgres
+    # Database password (in production, use environment variables)
+    password: postgres
+    # HikariCP connection pool configuration (high-performance JDBC pool)
+    hikari:
+      # Maximum number of connections in pool
+      maximum-pool-size: 10
+      # Minimum idle connections
+      minimum-idle: 5
+      # Connection timeout in milliseconds
+      connection-timeout: 30000
+      # Maximum lifetime of connection in pool
+      max-lifetime: 1800000
+
+  # JPA/Hibernate configuration
+  jpa:
+    # Hibernate DDL auto mode
+    # Options: none, validate, update, create, create-drop
+    # Development: update (auto-updates schema)
+    # Production: validate (only validates, doesn't change schema)
+    hibernate:
+      ddl-auto: update
+    # Show SQL queries in console (for debugging)
+    show-sql: true
+    # Format SQL for readability
+    properties:
+      hibernate:
+        # Pretty print SQL
+        format_sql: true
+        # Database dialect (PostgreSQL specific features)
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Enable SQL comments showing which entity generated the query
+        use_sql_comments: true
+        # Batch inserts/updates for performance
+        jdbc:
+          batch_size: 20
+        # Second-level cache (disabled for simplicity)
+        cache:
+          use_second_level_cache: false
+
+# Server configuration
+server:
+  # Port number where application runs
+  port: 8080
+  # Error handling
+  error:
+    # Include error message in response
+    include-message: always
+    # Include stack trace (only in development)
+    include-stacktrace: on_param
+
+# Logging configuration
+logging:
+  # Log levels for different packages
+  level:
+    # Root logger level
+    root: INFO
+    # Application package - detailed logging
+    com.appointment: DEBUG
+    # Hibernate SQL logging
+    org.hibernate.SQL: DEBUG
+    # Hibernate parameter values
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # Spring framework
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+  # Log pattern format
+  pattern:
+    # Console output pattern
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Application-specific configuration
+application:
+  # JWT configuration
+  jwt:
+    # Secret key for signing JWT tokens
+    # In production: Use long random string from environment variable
+    secret: mySecretKeyForJWTTokenGenerationPleaseChangeInProduction
+    # Token expiration time in milliseconds (24 hours)
+    expiration: 86400000
+
+  # Pagination defaults
+  pagination:
+    # Default page size
+    default-page-size: 20
+    # Maximum page size (prevents abuse)
+    max-page-size: 100
+
+# API Documentation (Swagger/OpenAPI)
+springdoc:
+  # Swagger UI path
+  swagger-ui:
+    path: /swagger-ui.html
+    # Enable tryout feature
+    tryout-enabled: true
+  # API docs path
+  api-docs:
+    path: /api-docs
+
+# Actuator endpoints (for monitoring and health checks)
+management:
+  # Expose all endpoints
+  endpoints:
+    web:
+      exposure:
+        # Which endpoints to expose
+        include: health,info,metrics,prometheus
+  # Health endpoint details
+  endpoint:
+    health:
+      # Show detailed health information
+      show-details: always
+
+# Development profile specific settings
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+# Development-specific overrides
+logging:
+  level:
+    com.appointment: TRACE
+
+---
+# Production profile specific settings
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+# Production-specific overrides
+spring:
+  jpa:
+    # Don't show SQL in production
+    show-sql: false
+    hibernate:
+      # Only validate schema, don't auto-update
+      ddl-auto: validate
+
+server:
+  error:
+    # Don't include stack trace in production
+    include-stacktrace: never
+
+logging:
+  level:
+    root: WARN
+    com.appointment: INFO
